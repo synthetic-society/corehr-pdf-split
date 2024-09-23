@@ -1,0 +1,70 @@
+[project]
+authors = [{name = "Luc Rocher", email = "luc@rocher.lc"}]
+description = "Split a CoreHR PDF application pack into multiple individual PDF applications."
+name = "corehr-pdf-split"
+version = "1.0.0"
+requires-python = ">= 3.7,<3.12"
+
+[build-system]
+requires = ["hatchling", "setuptools", "wheel"]
+build-backend = "hatchling.build"
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-arm64"]
+
+[tool.pixi.dependencies]
+click = ">=8.1.7,<9"
+pypdf2 = ">=3.0.1,<4"
+
+###############################
+# Code formatting and linting #
+###############################
+
+[tool.black]
+line-length = 99
+
+[tool.ruff]
+line-length = 99
+target-version = "py310"
+src = ["privacypark", "tests"]
+
+[tool.ruff.lint]
+unfixable = [
+    "ERA", # do not autoremove commented out code
+    "N806", # do not enforce camelCase (for ML "X, y", etc.)
+]
+extend-select = [
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "ERA", # flake8-eradicate/eradicate
+    "I",   # isort
+    "N",   # pep8-naming
+    "PIE", # flake8-pie
+    "PGH", # pygrep
+    "RUF", # ruff checks
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "TID", # flake8-tidy-imports
+    "UP",  # pyupgrade
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.isort]
+force-single-line = false
+force-sort-within-sections = true
+lines-between-types = 1
+lines-after-imports = 2
+known-first-party = ["privacypark", "syntheval"]
+known-local-folder = ["privacypark", "syntheval"]
+
+[tool.mypy]
+ignore_missing_imports = true
+enable_error_code = [
+  "ignore-without-code",
+  "redundant-expr",
+  "truthy-bool",
+]
+strict = true
