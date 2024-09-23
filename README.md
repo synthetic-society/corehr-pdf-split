@@ -19,10 +19,12 @@ A Python script to extract individual applications from a combined PDF file, suc
    cd corehr-pdf-split
    ```
 
-2. Install dependencies with [pixi](https://latest.pixi.sh):
+2. Install dependencies with [pixi](https://pixi.sh/latest/):
    ```
    pixi install
    ```
+
+You can also install the two small dependencies using `pip` or your preferred Python package manager.
 
 ## Usage
 
@@ -38,7 +40,7 @@ For example:
 pixi run python main.py --input-pdf applicationspack.pdf --output-dir output
 ```
 
-This will process the `applicationspack.pdf` file and save individual applications in the `output` directory. The output folder will be created if it does not exist yet. Each applicant's PDF is saved with a filename format: "LastName,FirstName [ApplicantID].pdf"
+This will process the `applicationspack.pdf` file and save individual applications in the `output` directory. The output folder will be created if it does not exist yet. Each applicant's PDF is saved with a filename format: `LastName,FirstName [ApplicantID].pdf`.
 
 ## License
 
