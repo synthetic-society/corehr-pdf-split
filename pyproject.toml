@@ -1,64 +1,54 @@
 [project]
-authors = [{name = "Luc Rocher", email = "luc@rocher.lc"}]
-description = "Split a CoreHR PDF application pack into multiple individual PDF applications."
 name = "corehr-pdf-split"
 version = "1.0.0"
-requires-python = ">= 3.7,<3.12"
+description = "Split a CoreHR PDF application pack into multiple individual PDF applications."
+authors = [{name = "Luc Rocher", email = "luc@rocher.lc"}]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">= 3.7"
+dependencies = [
+    "click>=8.1.7",
+    "PyPDF2>=3.0.1",
+]
+keywords = ["pdf", "split", "corehr", "applications"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business",
+    "Topic :: Utilities",
+]
+
+[project.scripts]
+corehr-pdf-split = "corehr_pdf_split.main:main"
+
+[project.urls]
+Homepage = "https://github.com/synthetic-society/corehr-pdf-split"
+Repository = "https://github.com/synthetic-society/corehr-pdf-split"
+Issues = "https://github.com/synthetic-society/corehr-pdf-split/issues"
 
 [build-system]
-requires = ["hatchling", "setuptools", "wheel"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.pixi.project]
-channels = ["conda-forge"]
-platforms = ["linux-64", "osx-arm64"]
-
-[tool.pixi.dependencies]
-click = ">=8.1.7,<9"
-pypdf2 = ">=3.0.1,<4"
-
-###############################
-# Code formatting and linting #
-###############################
-
 [tool.black]
-line-length = 99
+line-length = 120
 
 [tool.ruff]
-line-length = 99
-target-version = "py310"
-src = ["privacypark", "tests"]
+line-length = 120
+target-version = "py37"
+src = ["corehr_pdf_split"]
 
 [tool.ruff.lint]
-unfixable = [
-    "ERA", # do not autoremove commented out code
-    "N806", # do not enforce camelCase (for ML "X, y", etc.)
-]
-extend-select = [
-    "B",   # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "ERA", # flake8-eradicate/eradicate
-    "I",   # isort
-    "N",   # pep8-naming
-    "PIE", # flake8-pie
-    "PGH", # pygrep
-    "RUF", # ruff checks
-    "SIM", # flake8-simplify
-    "TCH", # flake8-type-checking
-    "TID", # flake8-tidy-imports
-    "UP",  # pyupgrade
-]
-
-[tool.ruff.lint.pydocstyle]
-convention = "numpy"
-
-[tool.ruff.lint.isort]
-force-single-line = false
-force-sort-within-sections = true
-lines-between-types = 1
-lines-after-imports = 2
-known-first-party = ["privacypark", "syntheval"]
-known-local-folder = ["privacypark", "syntheval"]
+select = ["E", "W", "F", "I", "B", "UP"]
+unfixable = ["B"]
 
 [tool.mypy]
 ignore_missing_imports = true

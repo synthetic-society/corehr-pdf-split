@@ -1,0 +1,1 @@
+"""CoreHR PDF Splitter package."""
