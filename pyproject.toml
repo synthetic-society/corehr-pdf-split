@@ -27,7 +27,7 @@ classifiers = [
 ]
 
 [project.scripts]
-corehr-pdf-split = "corehr_pdf_split.main:main"
+corehr-pdf-split = "corehr_pdf_split.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/synthetic-society/corehr-pdf-split"
