@@ -1,0 +1,55 @@
+name: CI
+
+on:
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main, develop]
+    workflow_dispatch:
+
+jobs:
+    test:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+                python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+                
+        steps:
+        - uses: actions/checkout@v4
+        - uses: astral-sh/setup-uv@v6
+          with:
+            enable-cache: true
+            python-version: ${{ matrix.python-version }}
+        - run: uv sync --all-extras
+        - run: uv run pytest
+        - run: uv run python -m corehr_pdf_split --help
+        
+        - name: Coverage
+          if: matrix.python-version == '3.12' && matrix.os == 'ubuntu-latest'
+          run: |
+            uvx coverage run -m pytest tests/
+            uvx coverage xml
+                
+        - uses: codecov/codecov-action@v5
+          if: matrix.python-version == '3.12' && matrix.os == 'ubuntu-latest'
+          with:
+            files: ./coverage.xml
+            fail_ci_if_error: false
+            token: ${{ secrets.CODECOV_TOKEN }}
+
+    build:
+        runs-on: ubuntu-latest
+        needs: test
+        steps:
+        - uses: actions/checkout@v4
+        - uses: astral-sh/setup-uv@v6
+          with:
+            python-version: 3.12
+        - run: uv build
+        - run: uvx twine check dist/*
+        - uses: actions/upload-artifact@v4
+          with:
+            name: dist-packages
+            path: dist/
