@@ -1,6 +1,6 @@
 [project]
 name = "corehr-pdf-split"
-version = "1.0.0"
+version = "1.0.2"
 description = "Split a CoreHR PDF application pack into multiple individual PDF applications."
 authors = [{name = "Luc Rocher", email = "luc@rocher.lc"}]
 readme = "README.md"
@@ -27,7 +27,7 @@ classifiers = [
 ]
 
 [project.scripts]
-corehr-pdf-split = "corehr_pdf_split.__main__:main"
+corehr-pdf-split = "corehr_pdf_split.main:main"
 
 [project.urls]
 Homepage = "https://github.com/synthetic-society/corehr-pdf-split"
