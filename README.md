@@ -1,6 +1,7 @@
 # CoreHR Application Pack PDF Splitter
 
-[![Python](https://img.shields.io/badge/Python-3.7%2B-blue)](https://www.python.org/downloads/)
+[![CI](https://github.com/synthetic-society/corehr-pdf-split/workflows/CI/badge.svg)](https://github.com/synthetic-society/corehr-pdf-split/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![PyPI version](https://badge.fury.io/py/corehr-pdf-split.svg)](https://badge.fury.io/py/corehr-pdf-split)
 
