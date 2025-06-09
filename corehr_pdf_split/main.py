@@ -44,11 +44,12 @@ def process_page(page, text, current_applicant, current_writer, output_dir):
         # Start a new PDF for the new applicant
         current_applicant = new_applicant
         current_writer = PdfWriter()
-
-    # Skip the first page
-    # Add the current page to the current applicant's PDF
-    elif current_writer is not None:
+        # Add the current page (which contains the applicant info) to the new PDF
         current_writer.add_page(page)
+    else:
+        # Add the current page to the current applicant's PDF (if we have one)
+        if current_writer is not None:
+            current_writer.add_page(page)
 
     return current_applicant, current_writer
 
