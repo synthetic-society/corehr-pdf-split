@@ -7,6 +7,10 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  security-events: write  # For uploading security reports
+
 jobs:
   quality:
     runs-on: ubuntu-latest
@@ -21,46 +25,32 @@ jobs:
         python-version: "3.12"
         
     - name: Install dependencies
-      run: |
-        uv sync --all-extras
-        
-    - name: Run Black (formatting check)
-      run: |
-        uvx black --check --diff corehr_pdf_split/ tests/
-      continue-on-error: true
-        
+      run: uv sync --all-extras
+
     - name: Run Ruff (linting)
-      run: |
-        uvx ruff check corehr_pdf_split/ tests/
-      continue-on-error: true
-        
+      run: uvx ruff check corehr_pdf_split/ tests/ --output-format=github
+      
     - name: Run Ruff (formatting check)
-      run: |
-        uvx ruff format --check corehr_pdf_split/ tests/
-      continue-on-error: true
+      run: uvx ruff format --check corehr_pdf_split/ tests/
         
-    - name: Run MyPy (type checking)
-      run: |
-        uvx mypy corehr_pdf_split/ --ignore-missing-imports
-      continue-on-error: true
-        
+    - name: Run Pyrefly (type checking)
+      run: uvx pyrefly check corehr_pdf_split/ tests/
+
     - name: Run Bandit (security linting)
-      run: |
-        uvx bandit -r corehr_pdf_split/ -f json -o bandit-report.json
-      continue-on-error: true
+      run: uvx bandit -r corehr_pdf_split/ -f json -o bandit-report.json
         
     - name: Run Safety (dependency security check)
-      run: |
-        uvx safety check --json --output safety-report.json || true
+      run: uvx safety check --json --save-json safety-report.json
         
     - name: Upload security reports
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: security-reports
+        name: security-reports-${{ github.run_id }}
         path: |
           bandit-report.json
           safety-report.json
+        retention-days: 30
 
 
   markdown-link-check:

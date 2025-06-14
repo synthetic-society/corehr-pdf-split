@@ -36,10 +36,10 @@ jobs:
             uv run coverage run -m pytest tests/
             uv run coverage xml
                 
-        - uses: codecov/codecov-action@v3
+        - uses: codecov/codecov-action@v5
           if: matrix.python-version == '3.12' && matrix.os == 'ubuntu-latest'
           with:
-            file: ./coverage.xml
+            files: ./coverage.xml
             fail_ci_if_error: false
 
     build:

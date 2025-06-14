@@ -1,20 +1,17 @@
 """Main CLI module for corehr-pdf-split."""
 
-import os
 import re
-from typing import Optional
+from pathlib import Path
 
 import click
-from PyPDF2 import PdfReader, PdfWriter
+from PyPDF2 import PageObject, PdfReader, PdfWriter
 
 
-def extract_applicant_info(text) -> Optional[str]:
+def extract_applicant_info(text: str) -> str | None:
     """Extract applicant name and ID from the text of a single page."""
     pattern_name_id = r"Applicant\s*:\s*([^\n]+?)\s*Applicant ID\s*:\s*(\w+)"
     match_name_id = re.search(pattern_name_id, text, re.IGNORECASE | re.DOTALL)
     match_vacancy_name = re.search(r"Vacancy Name\s*:\s*(\w+)", text, re.IGNORECASE | re.DOTALL)
-
-    print(len(text), match_name_id, match_vacancy_name)
 
     if match_name_id and match_vacancy_name:
         name = match_name_id.group(1).strip()
@@ -26,19 +23,25 @@ def extract_applicant_info(text) -> Optional[str]:
     return None
 
 
-def save_applicant_pdf(writer, applicant, output_dir) -> None:
+def save_applicant_pdf(writer: PdfWriter, applicant: str, output_dir: Path) -> None:
     click.echo(f"Saving {applicant}...")
-    output_filename = os.path.join(output_dir, f"{applicant}.pdf")
-    with open(output_filename, "wb") as output_file:
+    output_filename = Path(output_dir) / f"{applicant}.pdf"
+    with output_filename.open("wb") as output_file:
         writer.write(output_file)
 
 
-def process_page(page, text, current_applicant, current_writer, output_dir):
+def process_page(
+    page: PageObject,
+    text: str,
+    current_applicant: str | None,
+    current_writer: PdfWriter | None,
+    output_dir: Path,
+) -> tuple[str | None, PdfWriter | None]:
     new_applicant = extract_applicant_info(text)
 
     if new_applicant:
         # If we were working on a previous applicant, save their PDF
-        if current_writer:
+        if current_writer is not None and current_applicant is not None:
             save_applicant_pdf(current_writer, current_applicant, output_dir)
 
         # Start a new PDF for the new applicant
@@ -46,16 +49,15 @@ def process_page(page, text, current_applicant, current_writer, output_dir):
         current_writer = PdfWriter()
         # Add the current page (which contains the applicant info) to the new PDF
         current_writer.add_page(page)
-    else:
-        # Add the current page to the current applicant's PDF (if we have one)
-        if current_writer is not None:
-            current_writer.add_page(page)
+    # Add the current page to the current applicant's PDF (if we have one)
+    elif current_writer is not None:
+        current_writer.add_page(page)
 
     return current_applicant, current_writer
 
 
-def extract_applications(input_pdf, output_dir) -> None:
-    os.makedirs(output_dir, exist_ok=True)
+def extract_applications(input_pdf: Path, output_dir: Path) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     reader = PdfReader(input_pdf)
 
@@ -65,21 +67,20 @@ def extract_applications(input_pdf, output_dir) -> None:
     with click.progressbar(reader.pages, label="Pages") as pages:
         for page in pages:
             text = page.extract_text()
-            print(f"{len(text)} characters")
-            current_applicant, current_writer = process_page(
-                page, text, current_applicant, current_writer, output_dir
-            )
+            current_applicant, current_writer = process_page(page, text, current_applicant, current_writer, output_dir)
 
-    if current_writer:
+    # Save the last applicant if we have one
+    if current_writer is not None and current_applicant is not None:
         save_applicant_pdf(current_writer, current_applicant, output_dir)
-
-    click.echo(f"Applications extracted to {output_dir}")
+        click.echo(f"Applications extracted to {output_dir}")
+    else:
+        click.echo("No applications found in the PDF.")
 
 
 @click.command()
-@click.option("--input-pdf", required=True, help="Path to the input PDF file")
-@click.option("--output-dir", required=True, help="Path to the output directory")
-def main(input_pdf, output_dir) -> None:
+@click.option("--input-pdf", type=click.Path(exists=True, path_type=Path), required=True, help="Input PDF file")
+@click.option("--output-dir", type=click.Path(path_type=Path), required=True, help="Output directory")
+def main(input_pdf: Path, output_dir: Path) -> None:
     """Extract individual applications from a combined PDF file."""
     extract_applications(input_pdf, output_dir)
 
