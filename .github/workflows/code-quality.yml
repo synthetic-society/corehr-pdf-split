@@ -14,35 +14,35 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-  
+
     - name: Install uv
       uses: astral-sh/setup-uv@v6
       with:
         enable-cache: true
         version: "latest"
         python-version: "3.12"
-        
+
     - name: Install dependencies
       run: uv sync --all-extras
 
     - name: Run Ruff (linting)
       run: uvx ruff check corehr_pdf_split/ tests/ --output-format=github
-      
+
     - name: Run Ruff (formatting check)
       run: uvx ruff format --check corehr_pdf_split/ tests/
-        
+
     - name: Run Pyrefly (type checking)
       run: uvx pyrefly check corehr_pdf_split/ tests/
 
     - name: Run Bandit (security linting)
       run: uvx bandit -r corehr_pdf_split/ -f json -o bandit-report.json
-        
+
     - name: Run Safety (dependency security check)
       run: uvx safety check --json --save-json safety-report.json
-        
+
     - name: Upload security reports
       uses: actions/upload-artifact@v4
       if: always()
@@ -56,10 +56,10 @@ jobs:
 
   markdown-link-check:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-        
+
     - name: Run linkspector
       uses: umbrelladocs/action-linkspector@v1
       with:

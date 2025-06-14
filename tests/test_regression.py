@@ -33,9 +33,15 @@ def run_tool_subprocess(input_pdf, output_dir, project_root):
     """Run the PDF split tool using subprocess."""
     result = subprocess.run(
         [
-            "uv", "run", "python", "-m", "corehr_pdf_split",
-            "--input-pdf", str(input_pdf),
-            "--output-dir", str(output_dir),
+            "uv",
+            "run",
+            "python",
+            "-m",
+            "corehr_pdf_split",
+            "--input-pdf",
+            str(input_pdf),
+            "--output-dir",
+            str(output_dir),
         ],
         cwd=project_root,
         capture_output=True,
@@ -43,11 +49,7 @@ def run_tool_subprocess(input_pdf, output_dir, project_root):
     )
 
     # Simple result object to match CliRunner interface
-    return SimpleNamespace(
-        exit_code=result.returncode,
-        output=result.stdout,
-        stderr=result.stderr
-    )
+    return SimpleNamespace(exit_code=result.returncode, output=result.stdout, stderr=result.stderr)
 
 
 def get_pdf_pages(pdf_path) -> int:

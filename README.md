@@ -4,7 +4,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![PyPI version](https://badge.fury.io/py/corehr-pdf-split.svg)](https://badge.fury.io/py/corehr-pdf-split)
-[![codecov](https://codecov.io/gh/synthetic-society/corehr-pdf-split/branch/main/graph/badge.svg)](https://codecov.io/gh/synthetic-society/corehr-pdf-split)
+[![codecov](https://codecov.io/gh/synthetic-society/corehr-pdf-split/branch/main/graph/badge.svg?token=MKCPUF6UV4)](https://codecov.io/gh/synthetic-society/corehr-pdf-split)
 
 A Python package to extract individual applications from a combined PDF file, such as for Oxford HR application packs.
 
@@ -78,10 +78,23 @@ If you want to contribute to or modify this project:
    uv sync
    ```
 
-3. Run the tool in development mode:
+3. Set up pre-commit hooks:
+   ```bash
+   uvx pre-commit install
+   ```
+
+4. Run the tool in development mode:
    ```bash
    uv run corehr-pdf-split --input-pdf <path_to_input_pdf> --output-dir <path_to_output_directory>
    ```
+
+### Code Quality
+
+We use pre-commit hooks to ensure code quality. Run checks manually with:
+
+```bash
+uvx pre-commit run --all-files
+```
 
 ### Building and Publishing
 

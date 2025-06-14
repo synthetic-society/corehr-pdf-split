@@ -18,7 +18,7 @@ jobs:
             matrix:
                 os: [ubuntu-latest, windows-latest, macos-latest]
                 python-version: ["3.10", "3.11", "3.12"]
-                
+
         steps:
         - uses: actions/checkout@v4
         - uses: astral-sh/setup-uv@v6
@@ -37,7 +37,7 @@ jobs:
           if: matrix.python-version == '3.12' && matrix.os == 'ubuntu-latest'
           run: |
             uv run pytest --cov --cov-branch --cov-report=xml
-                
+
         - uses: codecov/codecov-action@v5
           if: matrix.python-version == '3.12' && matrix.os == 'ubuntu-latest'
           with:
