@@ -1,6 +1,6 @@
 [project]
 name = "corehr-pdf-split"
-version = "1.0.2"
+version = "1.0.3"
 description = "Split a CoreHR PDF application pack into multiple individual PDF applications."
 authors = [{name = "Luc Rocher", email = "luc@rocher.lc"}]
 readme = "README.md"
