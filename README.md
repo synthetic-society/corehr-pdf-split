@@ -4,6 +4,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![PyPI version](https://badge.fury.io/py/corehr-pdf-split.svg)](https://badge.fury.io/py/corehr-pdf-split)
+[![codecov](https://codecov.io/gh/synthetic-society/corehr-pdf-split/branch/main/graph/badge.svg)](https://codecov.io/gh/synthetic-society/corehr-pdf-split)
 
 A Python package to extract individual applications from a combined PDF file, such as for Oxford HR application packs.
 
