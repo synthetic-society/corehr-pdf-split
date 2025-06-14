@@ -78,9 +78,7 @@ def test_cli_multiple_applicants(fixtures_dir: Path, tmp_path: Path, project_roo
 
 def test_cli_missing_input_file(tmp_path: Path, project_root: Path) -> None:
     """Test CLI behavior with missing input file."""
-    result = run_cli(
-        "--input-pdf", "/nonexistent/file.pdf", "--output-dir", str(tmp_path), project_root=project_root
-    )
+    result = run_cli("--input-pdf", "/nonexistent/file.pdf", "--output-dir", str(tmp_path), project_root=project_root)
     assert result.returncode != 0
 
 

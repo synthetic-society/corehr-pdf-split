@@ -1,6 +1,7 @@
 """Generate PDF test fixtures for corehr-pdf-split testing."""
 
 from pathlib import Path
+from typing import Any
 
 from PyPDF2 import PdfReader, PdfWriter
 from reportlab.lib.pagesizes import letter
@@ -8,7 +9,6 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate
 from reportlab.platypus.flowables import PageBreak, Spacer
-from typing import Any
 
 
 def create_single_application_pdf(

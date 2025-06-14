@@ -10,6 +10,7 @@ from PyPDF2 import PdfReader, PdfWriter
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from corehr_pdf_split.main import (
+    ApplicantState,
     extract_applicant_info,
     extract_applications,
     process_page,
@@ -89,7 +90,8 @@ def test_save_applicant_pdf(tmp_path, fixtures_dir):
 
     # Save the PDF
     applicant_name = "Test Applicant [APP123]"
-    save_applicant_pdf(writer, applicant_name, tmp_path)
+    applicant_state = ApplicantState(applicant_name, writer)
+    save_applicant_pdf(applicant_state, tmp_path)
 
     # Verify the file was created with content
     expected_path = tmp_path / f"{applicant_name}.pdf"
@@ -103,10 +105,11 @@ def test_process_page_new_applicant(tmp_path, fixtures_dir):
     page = reader.pages[0]
     text = page.extract_text()
 
-    current_applicant, current_writer = process_page(page, text, None, None, tmp_path)
+    applicant_state = process_page(page, text, None, tmp_path)
 
-    assert current_applicant == "Alice Johnson [APP003]"
-    assert current_writer is not None
+    assert applicant_state is not None
+    assert applicant_state.name == "Alice Johnson [APP003]"
+    assert applicant_state.writer is not None
 
 
 def test_process_page_continuation(tmp_path, fixtures_dir):
@@ -117,13 +120,13 @@ def test_process_page_continuation(tmp_path, fixtures_dir):
 
     existing_writer = PdfWriter()
     current_applicant = "Existing Applicant [APP999]"
+    existing_applicant = ApplicantState(current_applicant, existing_writer)
 
-    result_applicant, result_writer = process_page(page, text, current_applicant, existing_writer, tmp_path)
-
-    assert result_applicant == current_applicant
-    assert result_writer == existing_writer
-    assert result_writer is not None
-    assert len(result_writer.pages) == 1
+    result_applicant = process_page(page, text, existing_applicant, tmp_path)
+    assert result_applicant is not None
+    assert result_applicant == existing_applicant
+    assert result_applicant.writer == existing_writer
+    assert len(result_applicant.writer.pages) == 1
 
 
 @pytest.mark.parametrize(
