@@ -1,10 +1,13 @@
 """Regression tests that compare outputs to expected baseline files."""
 
+import hashlib
 import subprocess
-import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
+from click.testing import CliRunner
+from corehr_pdf_split.main import main
 from PyPDF2 import PdfReader
 
 
@@ -20,23 +23,30 @@ def project_root():
     return Path(__file__).parent.parent
 
 
-def run_tool(input_pdf, output_dir, project_root):
+def run_tool(input_pdf, output_dir):
     """Run the PDF split tool."""
-    return subprocess.run(
+    runner = CliRunner()
+    return runner.invoke(main, ["--input-pdf", str(input_pdf), "--output-dir", str(output_dir)])
+
+
+def run_tool_subprocess(input_pdf, output_dir, project_root):
+    """Run the PDF split tool using subprocess."""
+    result = subprocess.run(
         [
-            "uv",
-            "run",
-            "python",
-            "-m",
-            "corehr_pdf_split",
-            "--input-pdf",
-            str(input_pdf),
-            "--output-dir",
-            str(output_dir),
+            "uv", "run", "python", "-m", "corehr_pdf_split",
+            "--input-pdf", str(input_pdf),
+            "--output-dir", str(output_dir),
         ],
+        cwd=project_root,
         capture_output=True,
         text=True,
-        cwd=project_root,
+    )
+
+    # Simple result object to match CliRunner interface
+    return SimpleNamespace(
+        exit_code=result.returncode,
+        output=result.stdout,
+        stderr=result.stderr
     )
 
 
@@ -56,19 +66,29 @@ def assert_pdf_exists(output_dir, filename, expected_pages=None) -> None:
         assert actual_pages == expected_pages, f"Expected {expected_pages} pages, got {actual_pages}"
 
 
-def test_simple_two_applicants(tmp_path, fixtures_dir, project_root):
+@pytest.mark.parametrize("run_func", [run_tool, run_tool_subprocess])
+def test_simple_two_applicants(tmp_path, fixtures_dir, project_root, run_func):
     """Test simple two-applicant case."""
-    result = run_tool(fixtures_dir / "simple_two_applicants.pdf", tmp_path, project_root)
-    assert result.returncode == 0
+    args = [fixtures_dir / "simple_two_applicants.pdf", tmp_path]
+    if run_func == run_tool_subprocess:
+        args.append(project_root)
+
+    result = run_func(*args)
+    assert result.exit_code == 0
 
     for filename in ["John Smith [APP001].pdf", "Jane Doe [APP002].pdf"]:
         assert_pdf_exists(tmp_path, filename)
 
 
-def test_multiple_applicants_variable_pages(tmp_path, fixtures_dir, project_root):
+@pytest.mark.parametrize("run_func", [run_tool, run_tool_subprocess])
+def test_multiple_applicants_variable_pages(tmp_path, fixtures_dir, project_root, run_func):
     """Test multiple applicants with variable page counts."""
-    result = run_tool(fixtures_dir / "multiple_applicants.pdf", tmp_path, project_root)
-    assert result.returncode == 0
+    args = [fixtures_dir / "multiple_applicants.pdf", tmp_path]
+    if run_func == run_tool_subprocess:
+        args.append(project_root)
+
+    result = run_func(*args)
+    assert result.exit_code == 0
 
     expected = [
         ("Bob Wilson [APP004].pdf", 1),
@@ -80,50 +100,81 @@ def test_multiple_applicants_variable_pages(tmp_path, fixtures_dir, project_root
         assert_pdf_exists(tmp_path, filename, pages)
 
 
-def test_special_characters(tmp_path, fixtures_dir, project_root):
+@pytest.mark.parametrize("run_func", [run_tool, run_tool_subprocess])
+def test_special_characters(tmp_path, fixtures_dir, project_root, run_func):
     """Test applicant names with special characters."""
-    result = run_tool(fixtures_dir / "special_characters.pdf", tmp_path, project_root)
-    assert result.returncode == 0
+    args = [fixtures_dir / "special_characters.pdf", tmp_path]
+    if run_func == run_tool_subprocess:
+        args.append(project_root)
 
+    result = run_func(*args)
+    assert result.exit_code == 0
     assert_pdf_exists(tmp_path, "María García-López [APP007].pdf")
 
 
-def test_content_consistency(fixtures_dir, project_root, tmp_path):
+@pytest.mark.parametrize("run_func", [run_tool, run_tool_subprocess])
+def test_content_consistency(fixtures_dir, project_root, tmp_path, run_func):
     """Test content consistency across runs."""
     input_pdf = fixtures_dir / "simple_two_applicants.pdf"
 
-    with tempfile.TemporaryDirectory() as temp_dir2:
-        # Run twice
-        result1 = run_tool(input_pdf, tmp_path, project_root)
-        result2 = run_tool(input_pdf, temp_dir2, project_root)
+    # Create two subfolders within tmp_path
+    output_dir1 = tmp_path / "run1"
+    output_dir2 = tmp_path / "run2"
+    output_dir1.mkdir()
+    output_dir2.mkdir()
 
-        assert result1.returncode == result2.returncode == 0
+    # Run twice with same method
+    args1 = [input_pdf, output_dir1]
+    args2 = [input_pdf, output_dir2]
+    if run_func == run_tool_subprocess:
+        args1.append(project_root)
+        args2.append(project_root)
 
-        # Compare outputs
-        files1 = sorted(tmp_path.glob("*.pdf"))
-        files2 = sorted(Path(temp_dir2).glob("*.pdf"))
+    result1 = run_func(*args1)
+    result2 = run_func(*args2)
 
-        assert len(files1) == len(files2)
+    assert result1.exit_code == result2.exit_code == 0
 
-        for f1, f2 in zip(files1, files2):
-            assert f1.name == f2.name
-            assert f1.stat().st_size == f2.stat().st_size
-            assert get_pdf_pages(f1) == get_pdf_pages(f2)
+    # Compare outputs
+
+    files1 = sorted(output_dir1.glob("*.pdf"))
+    files2 = sorted(output_dir2.glob("*.pdf"))
+
+    assert len(files1) == len(files2)
+
+    for f1, f2 in zip(files1, files2):
+        assert f1.name == f2.name
+        assert f1.stat().st_size == f2.stat().st_size
+        assert get_pdf_pages(f1) == get_pdf_pages(f2)
+
+        # Compare file hashes
+        with open(f1, "rb") as file1, open(f2, "rb") as file2:
+            hash1 = hashlib.md5(file1.read()).hexdigest()
+            hash2 = hashlib.md5(file2.read()).hexdigest()
+            assert hash1 == hash2, f"File contents differ: {f1.name}"
 
 
-def test_empty_pdf_handling(tmp_path, fixtures_dir, project_root):
+@pytest.mark.parametrize("run_func", [run_tool, run_tool_subprocess])
+def test_empty_pdf_handling(tmp_path, fixtures_dir, project_root, run_func):
     """Test empty PDF handling."""
-    result = run_tool(fixtures_dir / "empty.pdf", tmp_path, project_root)
-    assert result.returncode == 0
+    args = [fixtures_dir / "empty.pdf", tmp_path]
+    if run_func == run_tool_subprocess:
+        args.append(project_root)
+
+    result = run_func(*args)
+    assert result.exit_code == 0
     assert not list(tmp_path.glob("*.pdf"))
 
 
-def test_stdout_format(tmp_path, fixtures_dir, project_root):
+@pytest.mark.parametrize("run_func", [run_tool, run_tool_subprocess])
+def test_stdout_format(tmp_path, fixtures_dir, project_root, run_func):
     """Test stdout output format consistency."""
-    result = run_tool(fixtures_dir / "single_applicant.pdf", tmp_path, project_root)
-    assert result.returncode == 0
+    args = [fixtures_dir / "single_applicant.pdf", tmp_path]
+    if run_func == run_tool_subprocess:
+        args.append(project_root)
 
-    stdout = result.stdout
-    assert "Saving" in stdout
-    assert "Applications extracted to" in stdout
-    assert str(tmp_path) in stdout
+    result = run_func(*args)
+    assert result.exit_code == 0
+
+    output = result.output
+    assert all(text in output for text in ["Saving", "Applications extracted to", str(tmp_path)])
